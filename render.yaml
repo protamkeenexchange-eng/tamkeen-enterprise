@@ -1,0 +1,66 @@
+services:
+  # =====================
+  # DATABASE
+  # =====================
+  - type: pserv
+    name: tamkeen-postgres
+    env: docker
+    plan: free
+    image:
+      url: postgres:16
+    envVars:
+      - key: POSTGRES_DB
+        value: tamkeen
+      - key: POSTGRES_USER
+        value: tamkeen
+      - key: POSTGRES_PASSWORD
+        generateValue: true
+
+  # =====================
+  # REDIS
+  # =====================
+  - type: redis
+    name: tamkeen-redis
+    plan: free
+
+  # =====================
+  # API SERVICE
+  # =====================
+  - type: web
+    name: tamkeen-api
+    env: node
+    plan: free
+    rootDir: apps/api
+    buildCommand: "npm install && npm run build"
+    startCommand: "npm run start"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromService:
+          name: tamkeen-postgres
+          type: pserv
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: tamkeen-redis
+          type: redis
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+
+  # =====================
+  # WEB DASHBOARD
+  # =====================
+  - type: web
+    name: tamkeen-web
+    env: node
+    plan: free
+    rootDir: apps/web
+    buildCommand: "npm install && npm run build"
+    startCommand: "npm run start"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_URL
+        value: https://tamkeen-api.onrender.com
