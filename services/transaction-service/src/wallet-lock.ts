@@ -1,20 +1,18 @@
-type Lock = {
-  walletId: string;
-  lockedAt: number;
-};
+import redis from './redis';
 
-const locks = new Map<string, Lock>();
+const TTL_SECONDS = 5;
 
-export function acquireLock(walletId: string): boolean {
-  if (locks.has(walletId)) return false;
-  locks.set(walletId, { walletId, lockedAt: Date.now() });
-  return true;
+export async function acquireLock(walletId: string): Promise<boolean> {
+  const key = `lock:wallet:${walletId}`;
+  const result = await redis.set(key, '1', 'NX', 'EX', TTL_SECONDS);
+  return result === 'OK';
 }
 
-export function releaseLock(walletId: string): void {
-  locks.delete(walletId);
+export async function releaseLock(walletId: string): Promise<void> {
+  await redis.del(`lock:wallet:${walletId}`);
 }
 
-export function isLocked(walletId: string): boolean {
-  return locks.has(walletId);
+export async function isLocked(walletId: string): Promise<boolean> {
+  const val = await redis.get(`lock:wallet:${walletId}`);
+  return val !== null;
 }
