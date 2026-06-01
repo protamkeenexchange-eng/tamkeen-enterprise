@@ -1,0 +1,10 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: tamkeen
+      POSTGRES_USER: tamkeen
+      POSTGRES_PASSWORD: tamkeen
+    ports:
+      - '5432:5432'
