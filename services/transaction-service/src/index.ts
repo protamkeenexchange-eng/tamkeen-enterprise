@@ -1,6 +1,8 @@
 import express from 'express';
+import crypto from 'crypto';
 import { LedgerEngine } from './ledger';
 import { acquireLock, releaseLock, isLocked } from './wallet-lock';
+import { getIdempotencyKey, checkIdempotency, saveIdempotency } from './idempotency';
 
 const app = express();
 app.use(express.json());
@@ -9,6 +11,13 @@ const ledger = new LedgerEngine();
 
 app.post('/transfer', async (req, res) => {
   const { fromWallet, toWallet, amount } = req.body;
+
+  const idempotencyKey = getIdempotencyKey(req);
+  const existing = checkIdempotency(idempotencyKey);
+
+  if (existing) {
+    return res.json(existing);
+  }
 
   if (isLocked(fromWallet) || isLocked(toWallet)) {
     return res.status(409).json({ error: 'Wallet locked' });
@@ -25,6 +34,8 @@ app.post('/transfer', async (req, res) => {
         { accountId: toWallet, credit: amount }
       ]
     });
+
+    saveIdempotency(idempotencyKey, result);
 
     res.json(result);
   } catch (e: any) {
