@@ -1,0 +1,27 @@
+{
+  "name": "tamkeen-enterprise",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "services/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "dev": "node .",
+    "lint": "eslint .",
+    "test": "npm run build",
+    "prisma:generate": "prisma generate"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "@prisma/client": "^6.9.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.9.0",
+    "typescript": "^5.8.3",
+    "@types/express": "^5.0.1",
+    "@types/jsonwebtoken": "^9.0.9"
+  }
+}
