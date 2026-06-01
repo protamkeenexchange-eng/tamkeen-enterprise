@@ -1,0 +1,39 @@
+global:
+  environment: production
+
+apiGateway:
+  replicas: 3
+  image: tamkeen/api-gateway
+
+transactionService:
+  replicas: 3
+  image: tamkeen/transaction-service
+
+authService:
+  replicas: 2
+  image: tamkeen/auth-service
+
+ledgerService:
+  replicas: 3
+  image: tamkeen/ledger-service
+
+treasuryService:
+  replicas: 2
+  image: tamkeen/treasury-service
+
+fxEngine:
+  replicas: 2
+  image: tamkeen/fx-engine
+
+fraudService:
+  replicas: 2
+  image: tamkeen/fraud-service
+
+kafka:
+  enabled: true
+
+redis:
+  enabled: true
+
+postgres:
+  enabled: true
