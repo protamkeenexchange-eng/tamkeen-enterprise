@@ -1,0 +1,50 @@
+generator client { provider = "prisma-client-js" }
+
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+
+enum RoleName { SUPER_ADMIN MANAGER AGENT MERCHANT CUSTOMER }
+enum TransferStatus { PENDING COMPLETED FAILED }
+
+model User {
+ id String @id @default(uuid())
+ email String @unique
+ passwordHash String
+ refreshToken String?
+ roleId String
+ role Role @relation(fields:[roleId], references:[id])
+ wallets Wallet[]
+ createdAt DateTime @default(now())
+}
+
+model Role {
+ id String @id @default(uuid())
+ name RoleName @unique
+ users User[]
+}
+
+model Wallet {
+ id String @id @default(uuid())
+ userId String
+ user User @relation(fields:[userId], references:[id])
+ balance Decimal @default(0)
+ currency String @default("USD")
+ ledgerEntries LedgerEntry[]
+}
+
+model LedgerEntry {
+ id String @id @default(uuid())
+ walletId String
+ wallet Wallet @relation(fields:[walletId], references:[id])
+ amount Decimal
+ description String
+ createdAt DateTime @default(now())
+}
+
+model Transfer {
+ id String @id @default(uuid())
+ fromWalletId String
+ toWalletId String
+ amount Decimal
+ status TransferStatus @default(PENDING)
+ createdAt DateTime @default(now())
+}
