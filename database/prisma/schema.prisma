@@ -7,19 +7,98 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  password  String
-  createdAt DateTime @default(now())
-  accounts  Account[]
+model Role {
+  id          String       @id @default(uuid())
+  name        String       @unique
+  users       User[]
+  permissions Permission[]
 }
 
-model Account {
-  id        String   @id @default(uuid())
-  balance   Decimal  @default(0)
-  currency  String   @default("USD")
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
+model Permission {
+  id          String @id @default(uuid())
+  code        String @unique
+  description String?
+  roleId      String
+  role        Role   @relation(fields: [roleId], references: [id])
+
+  @@index([roleId])
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  roleId       String
+  role         Role      @relation(fields: [roleId], references: [id])
+  wallets      Wallet[]
+  auditLogs    AuditLog[]
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([roleId])
+  @@index([email])
+}
+
+model Wallet {
+  id            String        @id @default(uuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  currency      String
+  balance       Decimal       @default(0)
+  transactions  Transaction[]
+  ledgerEntries LedgerEntry[]
+  createdAt     DateTime      @default(now())
+
+  @@index([userId])
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  walletId    String
+  wallet      Wallet   @relation(fields: [walletId], references: [id])
+  amount      Decimal
+  type        String
+  status      String
+  reference   String?  @unique
+  createdAt   DateTime @default(now())
+
+  @@index([walletId])
+  @@index([status])
+}
+
+model LedgerAccount {
+  id            String        @id @default(uuid())
+  code          String        @unique
+  name          String
+  ledgerEntries LedgerEntry[]
+
+  @@index([code])
+}
+
+model LedgerEntry {
+  id              String        @id @default(uuid())
+  ledgerAccountId String
+  ledgerAccount   LedgerAccount @relation(fields: [ledgerAccountId], references: [id])
+  walletId        String?
+  wallet          Wallet?       @relation(fields: [walletId], references: [id])
+  debit           Decimal       @default(0)
+  credit          Decimal       @default(0)
+  createdAt       DateTime      @default(now())
+
+  @@index([ledgerAccountId])
+  @@index([walletId])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  action     String
+  entityType String
+  entityId   String
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([entityType, entityId])
 }
