@@ -32,6 +32,11 @@ model User {
   role         Role      @relation(fields: [roleId], references: [id])
   wallets      Wallet[]
   auditLogs    AuditLog[]
+  kycProfile   KycProfile?
+  agentProfile AgentProfile?
+  merchantProfile MerchantProfile?
+  refreshTokens RefreshToken[]
+  sessions     Session[]
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -43,6 +48,8 @@ model Wallet {
   id            String        @id @default(uuid())
   userId        String
   user          User          @relation(fields: [userId], references: [id])
+  walletTypeId  String?
+  walletType    WalletType?  @relation(fields: [walletTypeId], references: [id])
   currency      String
   balance       Decimal       @default(0)
   transactions  Transaction[]
@@ -50,6 +57,7 @@ model Wallet {
   createdAt     DateTime      @default(now())
 
   @@index([userId])
+  @@index([walletTypeId])
 }
 
 model Transaction {
@@ -101,4 +109,94 @@ model AuditLog {
 
   @@index([userId])
   @@index([entityType, entityId])
+}
+
+model Currency {
+  code   String @id
+  name   String
+  symbol String
+
+  @@index([name])
+}
+
+model ExchangeRate {
+  id            String   @id @default(uuid())
+  fromCurrency  String
+  toCurrency    String
+  rate          Decimal
+  createdAt     DateTime @default(now())
+
+  @@index([fromCurrency, toCurrency])
+}
+
+model WalletType {
+  id   String @id @default(uuid())
+  name String @unique
+
+  wallets Wallet[]
+}
+
+model KycProfile {
+  id        String @id @default(uuid())
+  userId    String @unique
+  user      User   @relation(fields: [userId], references: [id])
+  status    String
+  data      Json?
+  createdAt DateTime @default(now())
+
+  @@index([status])
+}
+
+model TreasuryAccount {
+  id       String @id @default(uuid())
+  currency String
+  balance  Decimal @default(0)
+
+  @@index([currency])
+}
+
+model Branch {
+  id   String @id @default(uuid())
+  name String
+  code String @unique
+
+  @@index([code])
+}
+
+model AgentProfile {
+  id       String @id @default(uuid())
+  userId   String @unique
+  branchId String
+
+  @@index([branchId])
+}
+
+model MerchantProfile {
+  id       String @id @default(uuid())
+  userId   String @unique
+  branchId String
+
+  @@index([branchId])
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  revoked   Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Session {
+  id         String   @id @default(uuid())
+  userId     String
+  ip         String?
+  userAgent  String?
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
 }
