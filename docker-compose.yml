@@ -9,6 +9,11 @@ services:
     ports:
       - '5432:5432'
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+
   auth-service:
     build: .
     environment:
@@ -19,3 +24,14 @@ services:
       - postgres
     ports:
       - '3001:3001'
+
+  transaction-service:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://tamkeen:tamkeen@postgres:5432/tamkeen
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - '3002:3002'
