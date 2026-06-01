@@ -1,15 +1,17 @@
+import Redis from 'ioredis';
 import crypto from 'crypto';
 
-const store = new Map<string, any>();
+const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
 export function getIdempotencyKey(req: any) {
   return req.headers['idempotency-key'] || crypto.randomUUID();
 }
 
-export function checkIdempotency(key: string) {
-  return store.get(key);
+export async function checkIdempotency(key: string) {
+  const value = await redis.get(`idem:${key}`);
+  return value ? JSON.parse(value) : null;
 }
 
-export function saveIdempotency(key: string, value: any) {
-  store.set(key, value);
+export async function saveIdempotency(key: string, value: any) {
+  await redis.set(`idem:${key}`, JSON.stringify(value), 'EX', 3600);
 }
