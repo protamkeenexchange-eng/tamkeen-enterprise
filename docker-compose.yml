@@ -1,10 +1,21 @@
 version: '3.9'
 services:
   postgres:
-    image: postgres:15
+    image: postgres:16
     environment:
       POSTGRES_DB: tamkeen
       POSTGRES_USER: tamkeen
       POSTGRES_PASSWORD: tamkeen
     ports:
       - '5432:5432'
+
+  auth-service:
+    build: .
+    environment:
+      DATABASE_URL: postgresql://tamkeen:tamkeen@postgres:5432/tamkeen
+      JWT_SECRET: secret
+      JWT_REFRESH_SECRET: refresh
+    depends_on:
+      - postgres
+    ports:
+      - '3001:3001'
